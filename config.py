@@ -64,10 +64,10 @@ SHORTLINK_API = environ.get("SHORTLINK_API", "fa3e0ca2dd8e7913c66dd787c2ece84346
 VERIFY_TUTORIAL = environ.get("VERIFY_TUTORIAL", "https://t.me/Thecinemacircle10/29") # how to open link 
 
 # Website Info:
-WEBSITE_URL_MODE = bool(environ.get('WEBSITE_URL_MODE', False)) # Set True or False
+WEBSITE_URL_MODE = bool(environ.get('WEBSITE_URL_MODE', True )) # Set True or False
 
 # If Website Url Mode Is True Then Fill All Required Variable, If False Then Don't Fill.
-WEBSITE_URL = environ.get("WEBSITE_URL", "") # For More Information Check Video On Yt - @Tech_VJ
+WEBSITE_URL = environ.get("WEBSITE_URL", "https://moviezbrand.blogspot.com/2025/04/moviez-brand.html") # For More Information Check Video On Yt - @Tech_VJ
 
 # File Stream Config
 STREAM_MODE = bool(environ.get('STREAM_MODE', True)) # Set True or False
