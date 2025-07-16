@@ -1,73 +1,65 @@
-# Don't Remove Credit @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
-
 import sys
 import glob
 import importlib
 from pathlib import Path
-from pyrogram import idle
+from pyrogram import Client, idle, __version__
+from pyrogram.raw.all import layer
+import time
+import asyncio
+from datetime import date, datetime
+import pytz
+from aiohttp import web
+import requests
+import threading
 import logging
 import logging.config
 
-# Don't Remove Credit Tg - @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
-# Ask Doubt on telegram @KingVJ01
+from database.ia_filterdb import Media, Media2
+from database.users_chats_db import db
+from info import *
+from utils import temp
+from Script import script
+from plugins import web_server, check_expired_premium, keep_alive
+from dreamxbotz.Bot import dreamxbotz
+from dreamxbotz.util.keepalive import ping_server
+from dreamxbotz.Bot.clients import initialize_clients
 
-# Get logging configurations
+# ✅ Logging Setup
 logging.config.fileConfig('logging.conf')
 logging.getLogger().setLevel(logging.INFO)
 logging.getLogger("pyrogram").setLevel(logging.ERROR)
+logging.getLogger("imdbpy").setLevel(logging.ERROR)
+logging.getLogger("aiohttp").setLevel(logging.ERROR)
+logging.getLogger("aiohttp.web").setLevel(logging.ERROR)
+logging.getLogger("pymongo").setLevel(logging.WARNING)
 
-# Don't Remove Credit Tg - @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
-
-from pyrogram import Client, __version__
-from pyrogram.raw.all import layer
-from config import LOG_CHANNEL, ON_HEROKU, CLONE_MODE, PORT
-from typing import Union, Optional, AsyncGenerator
-from pyrogram import types
-from Script import script 
-from datetime import date, datetime 
-import pytz
-from aiohttp import web
-from TechVJ.server import web_server
-
-# Don't Remove Credit Tg - @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
-import asyncio
-from pyrogram import idle
-from plugins.clone import restart_bots
-from TechVJ.bot import StreamBot
-from TechVJ.utils.keepalive import ping_server
-from TechVJ.bot.clients import initialize_clients
-
-# Don't Remove Credit Tg - @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
-
+botStartTime = time.time()
 ppath = "plugins/*.py"
 files = glob.glob(ppath)
-StreamBot.start()
-loop = asyncio.get_event_loop()
 
-# Don't Remove Credit Tg - @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
-# Ask Doubt on telegram @KingVJ01
+# ✅ Auto-Ping Thread for Koyeb
+def start_auto_ping():
+    def ping_loop():
+        while True:
+           trappp                response = requests.get("https://rear-maribel-moviebot5-fd8ae187.koyeb.app/ping", timeout=10)
+                logging.info(f"✅ Auto Ping Success: {response.status_code}")
+            except Exception as e:
+                logging.warning(f"⚠️ Auto Ping failed: {e}")
+            time.sleep(600)  # Every 10 minutes
 
+    thread = threading.Thread(target=ping_loop, daemon=True)
+    thread.start()
 
-async def start():
-    print('\n')
-    print('Initalizing Tech VJ Bot')
-    bot_info = await StreamBot.get_me()
-    StreamBot.username = bot_info.username
+# Start Auto Ping
+start_auto_ping()
+
+async def dreamxbotz_start():
+    print('\n\nInitalizing DreamxBotz')
+    await dreamxbotz.start()
+    bot_info = await dreamxbotz.get_me()
+    dreamxbotz.username = bot_info.username
     await initialize_clients()
+
     for name in files:
         with open(name) as a:
             patt = Path(a.name)
@@ -78,35 +70,66 @@ async def start():
             load = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(load)
             sys.modules["plugins." + plugin_name] = load
-            print("Tech VJ Imported => " + plugin_name)
+            print("DreamxBotz Imported => " + plugin_name)
+
     if ON_HEROKU:
-        asyncio.create_task(ping_server())
-    me = await StreamBot.get_me()
+        asyncio.create_task(ping_server()) 
+
+    b_users, b_chats = await db.get_banned()
+    temp.BANNED_USERS = b_users
+    temp.BANNED_CHATS = b_chats
+
+    await Media.ensure_indexes()
+    if MULTIPLE_DB:
+        await Media2.ensure_indexes()
+        print("Multiple Database Mode On. Now Files Will Be Save In Second DB If First DB Is Full")
+    else:
+        print("Single DB Mode On ! Files Will Be Save In First Database")
+
+    me = await dreamxbotz.get_me()
+    temp.ME = me.id
+    temp.U_NAME = me.username
+    temp.B_NAME = me.first_name
+    temp.B_LINK = me.mention
+    dreamxbotz.username = '@' + me.username
+    dreamxbotz.loop.create_task(check_expired_premium(dreamxbotz))
+
+    logging.info(f"{me.first_name} with Pyrogram v{__version__} (Layer {layer}) started on {me.username}.")
+    logging.info(LOG_STR)
+    logging.info(script.LOGO)
+
     tz = pytz.timezone('Asia/Kolkata')
     today = date.today()
     now = datetime.now(tz)
-    time = now.strftime("%H:%M:%S %p")
-    app = web.AppRunner(await web_server())
-    await StreamBot.send_message(chat_id=LOG_CHANNEL, text=script.RESTART_TXT.format(today, time))
-    await app.setup()
+    time_str = now.strftime("%H:%M:%S %p")
+    await dreamxbotz.send_message(
+        chat_id=LOG_CHANNEL,
+        text=script.RESTART_TXT.format(temp.B_LINK, today, time_str)
+    )
+
+    # ✅ Create web app from web_server
+    app = await web_server()
+
+    # ✅ Add /ping route for uptime check
+    async def ping(request):
+        return web.Response(text="Pong!")
+
+    app.router.add_get("/ping", ping)
+
+    # ✅ Start web server
+    runner = web.AppRunner(app)
+    await runner.setup()
     bind_address = "0.0.0.0"
-    await web.TCPSite(app, bind_address, PORT).start()
-    if CLONE_MODE == True:
-        await restart_bots()
-    print("Bot Started Powered By @VJ_Botz")
+    await web.TCPSite(runner, bind_address, PORT).start()
+    # ✅ Fake Keep Alive for other platforms (optional)
+    dreamxbotz.loop.create_task(keep_alive())
+
+    # ✅ Stay running
     await idle()
 
-# Don't Remove Credit Tg - @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
 if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
     try:
-        loop.run_until_complete(start())
+        loop.run_until_complete(dreamxbotz_start())
     except KeyboardInterrupt:
         logging.info('Service Stopped Bye 👋')
-
-
-# Don't Remove Credit Tg - @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
-# Ask Doubt on telegram @KingVJ01
