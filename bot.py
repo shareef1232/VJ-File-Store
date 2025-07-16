@@ -24,7 +24,8 @@ logging.getLogger("pyrogram").setLevel(logging.ERROR)
 # Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
 # Ask Doubt on telegram @KingVJ01
 
-from pyrogram import Client, version
+
+from pyrogram import Client, __version__
 from pyrogram.raw.all import layer
 from config import LOG_CHANNEL, ON_HEROKU, CLONE_MODE, PORT
 from typing import Union, Optional, AsyncGenerator
@@ -99,7 +100,7 @@ async def start():
 # Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
 # Ask Doubt on telegram @KingVJ01
 
-if name == 'main':
+if __name__ == '__main__':
     try:
         loop.run_until_complete(start())
     except KeyboardInterrupt:
