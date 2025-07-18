@@ -36,7 +36,7 @@ def start_auto_ping():
     def ping_loop():
         while True:
             try:
-                response = requests.get("https://your-koyeb-or-render-url.com/ping", timeout=10)
+                response = requests.get("https://rear-maribel-moviebot5-fd8ae187.koyeb.app/ping", timeout=10)
                 logging.info(f"✅ Auto Ping Success: {response.status_code}")
             except Exception as e:
                 logging.warning(f"⚠️ Auto Ping failed: {e}")
