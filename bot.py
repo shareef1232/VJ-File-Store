@@ -41,7 +41,7 @@ def start_auto_ping():
                 logging.info(f"✅ Auto Ping Success: {response.status_code}")
             except Exception as e:
                 logging.warning(f"⚠️ Auto Ping failed: {e}")
-            time.sleep(200)  # 10 minutes
+            time.sleep(120)  # 2 minutes
 
     thread = threading.Thread(target=ping_loop, daemon=True)
     thread.start()
