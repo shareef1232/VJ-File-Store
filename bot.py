@@ -37,7 +37,7 @@ def start_auto_ping():
     def ping_loop():
         while True:
             try:
-                response = requests.get("https://brave-seline-moviebot5-31921946.koyeb.app//ping", timeout=5)
+                response = requests.get("https://brave-seline-moviebot5-31921946.koyeb.app/ping", timeout=5)
                 logging.info(f"✅ Auto Ping Success: {response.status_code}")
             except Exception as e:
                 logging.warning(f"⚠️ Auto Ping failed: {e}")
